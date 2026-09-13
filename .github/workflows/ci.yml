@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu GCC
+            os: ubuntu-latest
+            cxx: g++
+            cc: gcc
+          - name: Ubuntu Clang
+            os: ubuntu-latest
+            cxx: clang++
+            cc: clang
+          - name: Windows MSVC
+            os: windows-latest
+            cxx: cl
+            cc: cl
+          - name: macOS Clang
+            os: macos-latest
+            cxx: clang++
+            cc: clang
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Setup MSVC environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Clang (Ubuntu)
+        if: matrix.cxx == 'clang++' && runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang
+
+      - name: Configure, build, and test (tests)
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        shell: bash
+        run: |
+          cmake --preset tests
+          cmake --build --preset tests
+          ctest --preset tests
+
+      - name: Configure, build, and test (tests-tiny)
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        shell: bash
+        run: |
+          cmake --preset tests-tiny
+          cmake --build --preset tests-tiny
+          ctest --preset tests-tiny
+
+  arm-none-eabi:
+    name: arm-none-eabi
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Install arm-none-eabi toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi
+
+      - name: Configure and build (arm-no-tests)
+        run: |
+          cmake --preset arm-no-tests
+          cmake --build --preset arm-no-tests
+
+      - name: Configure and build (arm-no-tests-tiny)
+        run: |
+          cmake --preset arm-no-tests-tiny
+          cmake --build --preset arm-no-tests-tiny
