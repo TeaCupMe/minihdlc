@@ -1,6 +1,8 @@
 # minihdlc
-Portable C library for HDLC Protocol
+Portable C++ library for HDLC Protocol.
 
-This project can be used to work with https://github.com/mengguang/ArduinoHDLC .  
-When you want to call ESP8266 function from a STM32 MCU, this project is what you want.  
+# Frame structure
+![Frame sctructure](https://www.notblackmagic.com/bitsnpieces/ax.25/img/HDLC_Frame.png)
+(image from [notblackmagic.com](https://www.notblackmagic.com/bitsnpieces/ax.25/#hdlc))
+
 

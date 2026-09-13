@@ -1,0 +1,103 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}"
+        },
+        {
+            "name": "tests",
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": "ON",
+                "MINIHDLC_TINY_MODE": "OFF"
+            }
+        },
+        {
+            "name": "no-tests",
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": "OFF",
+                "MINIHDLC_TINY_MODE": "OFF"
+            }
+        },
+        {
+            "name": "tests-tiny",
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": "ON",
+                "MINIHDLC_TINY_MODE": "ON"
+            }
+        },
+        {
+            "name": "no-tests-tiny",
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": "OFF",
+                "MINIHDLC_TINY_MODE": "ON"
+            }
+        },
+        {
+            "name": "arm-no-tests",
+            "inherits": "no-tests",
+            "toolchainFile": "${sourceDir}/cmake/arm-none-eabi.cmake",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/arm-none-eabi.cmake"
+            }
+        },
+        {
+            "name": "arm-no-tests-tiny",
+            "inherits": "no-tests-tiny",
+            "toolchainFile": "${sourceDir}/cmake/arm-none-eabi.cmake",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/arm-none-eabi.cmake"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "tests",
+            "configurePreset": "tests"
+        },
+        {
+            "name": "no-tests",
+            "configurePreset": "no-tests"
+        },
+        {
+            "name": "tests-tiny",
+            "configurePreset": "tests-tiny"
+        },
+        {
+            "name": "no-tests-tiny",
+            "configurePreset": "no-tests-tiny"
+        },
+        {
+            "name": "arm-no-tests",
+            "configurePreset": "arm-no-tests",
+            "targets": ["minihdlc"]
+        },
+        {
+            "name": "arm-no-tests-tiny",
+            "configurePreset": "arm-no-tests-tiny",
+            "targets": ["minihdlc"]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "tests",
+            "configurePreset": "tests",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "tests-tiny",
+            "configurePreset": "tests-tiny",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}
