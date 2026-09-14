@@ -70,6 +70,26 @@ jobs:
           cmake --build --preset tests-tiny
           ctest --preset tests-tiny
 
+      - name: Configure, build, and test (tests-callback)
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        shell: bash
+        run: |
+          cmake --preset tests-callback
+          cmake --build --preset tests-callback
+          ctest --preset tests-callback
+
+      - name: Configure, build, and test (tests-tiny-callback)
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        shell: bash
+        run: |
+          cmake --preset tests-tiny-callback
+          cmake --build --preset tests-tiny-callback
+          ctest --preset tests-tiny-callback
+
   arm-none-eabi:
     name: arm-none-eabi sizes
     runs-on: ubuntu-latest

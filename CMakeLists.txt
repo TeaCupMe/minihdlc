@@ -18,7 +18,6 @@ if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 
-message(STATUS "The CMake executable is located at: ${CMAKE_COMMAND}")
 
 add_library(minihdlc
     ./src/minihdlc.cpp
