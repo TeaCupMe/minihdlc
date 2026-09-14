@@ -69,6 +69,7 @@ MiniHDLCController::MiniHDLCController()
 }
 #endif // MINIHDLC_USE_CALLBACK
 
+#ifndef MINIHDLC_USE_CALLBACK
 uint8_t MiniHDLCController::operator[](size_t index)
 {
 #ifndef MINIHDLC_TINY
@@ -76,6 +77,7 @@ uint8_t MiniHDLCController::operator[](size_t index)
 #endif
 	return this->receiveBuffer[index];
 }
+#endif // MINIHDLC_USE_CALLBACK
 
 /* Function to find valid HDLC frame from incoming data */
 [[nodiscard]] bool MiniHDLCController::FeedFromIsr(uint8_t data) {
@@ -185,8 +187,10 @@ void MiniHDLCController::Reset()
 	this->framePosition = 0;
 	this->frameChecksum = CRC16_CCITT_INIT_VAL;
 	this->escapeCharacter = false;
+#ifndef MINIHDLC_USE_CALLBACK
 	this->frameReceived = false;
 	this->frameLength = 0;
+#endif
 }
 
 } // namespace minihdlc
