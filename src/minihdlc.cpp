@@ -77,6 +77,11 @@ MiniHDLCController::MiniHDLCController()
 	this->frameLength = 0;
 	return true;
 }
+void MiniHDLCController::AcceptNext()
+{
+	this->frameReceived = false;
+	this->frameLength = 0;
+}
 #endif // MINIHDLC_USE_CALLBACK
 
 #ifndef MINIHDLC_USE_CALLBACK

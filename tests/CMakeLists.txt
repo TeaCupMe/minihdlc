@@ -25,5 +25,13 @@ target_link_libraries(minihdlc_tests
 )
 
 # Automatically register individual tests with CTest
-gtest_discover_tests(minihdlc_crc_tests TEST_PREFIX "crc.")
-gtest_discover_tests(minihdlc_tests TEST_PREFIX "hdlc.")
+# PRE_TEST avoids a Windows race where parallel POST_BUILD discovery
+# can attribute one executable's tests to the other.
+gtest_discover_tests(minihdlc_crc_tests
+    TEST_PREFIX "crc."
+    DISCOVERY_MODE PRE_TEST
+)
+gtest_discover_tests(minihdlc_tests
+    TEST_PREFIX "hdlc."
+    DISCOVERY_MODE PRE_TEST
+)
