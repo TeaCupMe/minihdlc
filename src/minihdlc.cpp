@@ -1,4 +1,5 @@
 #include "minihdlc.h"
+#include "crc_ccitt.h"
 
 /* HDLC Asynchronous framing */
 /* The frame boundary octet is 01111110, (7E in hexadecimal notation) */

@@ -61,7 +61,5 @@ public:
 	void Reset();
 };
 
-uint16_t CrcUpdate(uint16_t currentCrc, uint8_t data);
-uint16_t CrcBlock(uint8_t* block, uint16_t len);
 }
 #endif

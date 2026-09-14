@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "minihdlc.h"
+#include "crc_ccitt.h"
 
 
 /* Comparing with https://www.sunshine2k.de/coding/javascript/crc/crc_js.html 
