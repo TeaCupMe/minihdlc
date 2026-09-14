@@ -23,11 +23,15 @@ using frameHandlerFunction_t = void (*)(const uint8_t *frame_buffer, uint16_t fr
 #define MINIHDLC_MAX_FRAME_LENGTH (64)
 #endif
 
-#ifdef MINIHDLC_TINY
-#pragma message("MINIHDLC_TINY is defined, so pointer/length checks are disabled. Use with caution and only if you know what you are doing.")
+#if MINIHDLC_MAX_FRAME_LENGTH > 255
+using frame_index_t = uint16_t;
+#else
+using frame_index_t = uint8_t;
 #endif
 
-
+#if defined(MINIHDLC_TINY) && defined(MINIHDLC_TINY_WARN)
+#pragma message("MINIHDLC_TINY is defined, so pointer/length checks are disabled. Use with caution and only if you know what you are doing.")
+#endif
 
 class MiniHDLCController {
 private:
@@ -36,10 +40,10 @@ private:
 	frameHandlerFunction_t frameHandler;
 #else
 	bool frameReceived;
-	uint16_t frameLength;
+	frame_index_t frameLength;
 #endif
 	bool escapeCharacter;
-	uint16_t framePosition;
+	frame_index_t framePosition;
 	uint16_t frameChecksum;
 
 public:
@@ -48,8 +52,8 @@ public:
 	bool Init(frameHandlerFunction_t frameHandler);
 #else
 	bool Init();
-	bool AcceptNext();
-	uint8_t FrameAvailable() {return this->frameLength ? this->frameLength : 0;}
+	void AcceptNext();
+	uint8_t FrameAvailable() {return this->frameReceived ? this->frameLength : 0;}
 	uint8_t operator[](size_t index);
 #endif
 
@@ -61,7 +65,5 @@ public:
 	void Reset();
 };
 
-uint16_t CrcUpdate(uint16_t currentCrc, uint8_t data);
-uint16_t CrcBlock(uint8_t* block, uint16_t len);
 }
 #endif

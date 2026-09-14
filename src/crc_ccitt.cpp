@@ -20,14 +20,10 @@ namespace minihdlc
     uint16_t CrcBlock(uint8_t* block, uint16_t len)
     {
         uint16_t crc = 0xFFFF;
-        uint8_t i;
 
         while (len--)
         {
-            crc ^= *block++ << 8;
-
-            for (i = 0; i < 8; i++)
-                crc = crc & 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
+            crc = CrcUpdate(crc, *block++);
         }
         return crc;
     }

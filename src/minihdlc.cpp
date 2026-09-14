@@ -1,4 +1,5 @@
 #include "minihdlc.h"
+#include "crc_ccitt.h"
 
 /* HDLC Asynchronous framing */
 /* The frame boundary octet is 01111110, (7E in hexadecimal notation) */
@@ -38,6 +39,15 @@ static void putByte(uint8_t* buf, uint8_t &position, uint8_t data, uint8_t &bufS
 	buf[position++] = data;
 }
 
+static void putEscaped(uint8_t* buf, uint8_t &position, uint8_t data, uint8_t &bufSize)
+{
+	if ((data == CONTROL_ESCAPE_OCTET) || (data == FRAME_BOUNDARY_OCTET)) {
+		putByte(buf, position, CONTROL_ESCAPE_OCTET, bufSize);
+		data ^= INVERT_OCTET;
+	}
+	putByte(buf, position, data, bufSize);
+}
+
 namespace minihdlc
 {
 
@@ -67,8 +77,14 @@ MiniHDLCController::MiniHDLCController()
 	this->frameLength = 0;
 	return true;
 }
+void MiniHDLCController::AcceptNext()
+{
+	this->frameReceived = false;
+	this->frameLength = 0;
+}
 #endif // MINIHDLC_USE_CALLBACK
 
+#ifndef MINIHDLC_USE_CALLBACK
 uint8_t MiniHDLCController::operator[](size_t index)
 {
 #ifndef MINIHDLC_TINY
@@ -76,6 +92,7 @@ uint8_t MiniHDLCController::operator[](size_t index)
 #endif
 	return this->receiveBuffer[index];
 }
+#endif // MINIHDLC_USE_CALLBACK
 
 /* Function to find valid HDLC frame from incoming data */
 [[nodiscard]] bool MiniHDLCController::FeedFromIsr(uint8_t data) {
@@ -146,36 +163,20 @@ uint8_t MiniHDLCController::operator[](size_t index)
 
 uint8_t MiniHDLCController::ConstructFrame(const uint8_t *frameBuffer, uint8_t frameLength, uint8_t* outputBuffer, uint8_t outputLength)
 {
-    uint8_t data;
+	uint8_t data;
 	uint16_t fcs = CRC16_CCITT_INIT_VAL;
 	uint8_t outputCounter = 0;
-	putByte(outputBuffer, outputCounter, (uint8_t) FRAME_BOUNDARY_OCTET, outputLength);
+	putByte(outputBuffer, outputCounter, FRAME_BOUNDARY_OCTET, outputLength);
 
 	while (frameLength) {
 		data = *frameBuffer++;
 		fcs = CrcUpdate(fcs, data);
-		if ((data == CONTROL_ESCAPE_OCTET) || (data == FRAME_BOUNDARY_OCTET)) {
-			putByte(outputBuffer, outputCounter, (uint8_t) CONTROL_ESCAPE_OCTET, outputLength);
-			data ^= INVERT_OCTET;
-		}
-		putByte(outputBuffer, outputCounter, (uint8_t) data, outputLength);
+		putEscaped(outputBuffer, outputCounter, data, outputLength);
 		frameLength--;
 	}
 
-	data = lowByte(fcs);
-	
-	if ((data == CONTROL_ESCAPE_OCTET) || (data == FRAME_BOUNDARY_OCTET)) {
-		putByte(outputBuffer, outputCounter, (uint8_t) CONTROL_ESCAPE_OCTET, outputLength);
-		data ^= (uint8_t) INVERT_OCTET;
-	}
-	
-	putByte(outputBuffer, outputCounter, (uint8_t) data, outputLength);
-	data = highByte(fcs);
-	if ((data == CONTROL_ESCAPE_OCTET) || (data == FRAME_BOUNDARY_OCTET)) {
-		putByte(outputBuffer, outputCounter, CONTROL_ESCAPE_OCTET, outputLength);
-		data ^= INVERT_OCTET;
-	}
-	putByte(outputBuffer, outputCounter, data, outputLength);
+	putEscaped(outputBuffer, outputCounter, lowByte(fcs), outputLength);
+	putEscaped(outputBuffer, outputCounter, highByte(fcs), outputLength);
 	putByte(outputBuffer, outputCounter, FRAME_BOUNDARY_OCTET, outputLength);
 	return outputCounter;
 }
@@ -185,8 +186,10 @@ void MiniHDLCController::Reset()
 	this->framePosition = 0;
 	this->frameChecksum = CRC16_CCITT_INIT_VAL;
 	this->escapeCharacter = false;
+#ifndef MINIHDLC_USE_CALLBACK
 	this->frameReceived = false;
 	this->frameLength = 0;
+#endif
 }
 
 } // namespace minihdlc

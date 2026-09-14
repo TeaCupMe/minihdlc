@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   test:
     name: ${{ matrix.name }}
@@ -66,8 +70,28 @@ jobs:
           cmake --build --preset tests-tiny
           ctest --preset tests-tiny
 
+      - name: Configure, build, and test (tests-callback)
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        shell: bash
+        run: |
+          cmake --preset tests-callback
+          cmake --build --preset tests-callback
+          ctest --preset tests-callback
+
+      - name: Configure, build, and test (tests-tiny-callback)
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        shell: bash
+        run: |
+          cmake --preset tests-tiny-callback
+          cmake --build --preset tests-tiny-callback
+          ctest --preset tests-tiny-callback
+
   arm-none-eabi:
-    name: arm-none-eabi
+    name: arm-none-eabi sizes
     runs-on: ubuntu-latest
 
     steps:
@@ -80,14 +104,76 @@ jobs:
       - name: Install arm-none-eabi toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-none-eabi
+          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi
 
-      - name: Configure and build (arm-no-tests)
+      - name: Build all ARM configs and collect sizes
+        id: sizes
+        shell: bash
         run: |
-          cmake --preset arm-no-tests
-          cmake --build --preset arm-no-tests
+          set -euo pipefail
 
-      - name: Configure and build (arm-no-tests-tiny)
-        run: |
-          cmake --preset arm-no-tests-tiny
-          cmake --build --preset arm-no-tests-tiny
+          report_file="${GITHUB_WORKSPACE}/arm-size-report.md"
+          {
+            echo "## arm-none-eabi library size report"
+            echo
+            echo "Built with \`CMAKE_BUILD_TYPE=MinSizeRel\` (\`-Os\`) via \`arm-none-eabi-g++\`."
+            echo
+            echo "| Configuration | TINY | CALLBACK | .a file (bytes) | text | data | bss | total (text+data+bss) |"
+            echo "|---|---|---|---:|---:|---:|---:|---:|"
+          } > "${report_file}"
+
+          configs=(
+            "arm-no-tests|OFF|OFF"
+            "arm-no-tests-tiny|ON|OFF"
+            "arm-no-tests-callback|OFF|ON"
+            "arm-no-tests-tiny-callback|ON|ON"
+          )
+
+          for entry in "${configs[@]}"; do
+            IFS='|' read -r preset tiny callback <<< "${entry}"
+
+            cmake --preset "${preset}" -DCMAKE_BUILD_TYPE=MinSizeRel
+            cmake --build --preset "${preset}"
+
+            lib="build/${preset}/libminihdlc.a"
+            if [[ ! -f "${lib}" ]]; then
+              echo "Missing library: ${lib}" >&2
+              exit 1
+            fi
+
+            archive_bytes="$(stat -c%s "${lib}")"
+            # size -t prints a TOTALS line for archives
+            size_line="$(arm-none-eabi-size -t "${lib}" | awk '/TOTALS/ {print $1, $2, $3, $4; exit}')"
+            read -r text data bss total <<< "${size_line}"
+
+            echo "| \`${preset}\` | ${tiny} | ${callback} | ${archive_bytes} | ${text} | ${data} | ${bss} | ${total} |" >> "${report_file}"
+          done
+
+          {
+            echo
+            echo "<details>"
+            echo "<summary>Per-object \`arm-none-eabi-size\` output</summary>"
+            echo
+          } >> "${report_file}"
+
+          for entry in "${configs[@]}"; do
+            IFS='|' read -r preset tiny callback <<< "${entry}"
+            lib="build/${preset}/libminihdlc.a"
+            echo "### \`${preset}\` (TINY=${tiny}, CALLBACK=${callback})" >> "${report_file}"
+            echo '```' >> "${report_file}"
+            arm-none-eabi-size -t "${lib}" >> "${report_file}"
+            echo '```' >> "${report_file}"
+            echo >> "${report_file}"
+          done
+
+          echo "</details>" >> "${report_file}"
+
+          cat "${report_file}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "report_path=${report_file}" >> "${GITHUB_OUTPUT}"
+
+      - name: Comment size report on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: arm-none-eabi-size-report
+          path: arm-size-report.md

@@ -13,20 +13,25 @@ FetchContent_MakeAvailable(googletest)
 add_executable(minihdlc_crc_tests test_crc_ccitt.cpp)
 target_link_libraries(minihdlc_crc_tests 
     PRIVATE 
-        minihdlc              # The lib you want to test
-        gtest_main            # Automatic GTest main() function
-        gtest                 # Core framework
+        minihdlc
+        GTest::gtest_main
 )
 
 add_executable(minihdlc_tests test_main.cpp)
 target_link_libraries(minihdlc_tests 
     PRIVATE 
-        minihdlc              # The lib you want to test
-        gtest_main            # Automatic GTest main() function
-        gtest                 # Core framework
-        GTest::gmock_main
+        minihdlc
+        GTest::gtest_main
 )
 
 # Automatically register individual tests with CTest
-gtest_discover_tests(minihdlc_crc_tests)
-gtest_discover_tests(minihdlc_tests)
+# PRE_TEST avoids a Windows race where parallel POST_BUILD discovery
+# can attribute one executable's tests to the other.
+gtest_discover_tests(minihdlc_crc_tests
+    TEST_PREFIX "crc."
+    DISCOVERY_MODE PRE_TEST
+)
+gtest_discover_tests(minihdlc_tests
+    TEST_PREFIX "hdlc."
+    DISCOVERY_MODE PRE_TEST
+)
