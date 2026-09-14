@@ -6,31 +6,30 @@
 
 TEST(MiniHDLC, Initialization_Success) {
     minihdlc::MiniHDLCController controller;
-#ifdef MINIHDLC_USE_CALLBACKS
+#ifdef MINIHDLC_USE_CALLBACK
     bool initResult = controller.Init(
         [](const uint8_t* frame_buffer, uint16_t frame_length) {} // Dummy frameHandler function
     );
 #else
     bool initResult = controller.Init();
-#endif // MINIHDLC_USE_CALLBACKS
+#endif // MINIHDLC_USE_CALLBACK
     ASSERT_TRUE(initResult);
 }
 
 TEST(MiniHDLC, Initialization_Failure_NullPointers) {
+#ifdef MINIHDLC_USE_CALLBACK
     minihdlc::MiniHDLCController controller;
-#ifdef MINIHDLC_USE_CALLBACKS
     bool initResult = controller.Init(nullptr);
-#else
-    bool initResult = controller.Init();
-#endif // MINIHDLC_USE_CALLBACKS
-
 #ifndef MINIHDLC_TINY
-    // without MINIHDLC_TINY, init should fail with null pointers
+    // without MINIHDLC_TINY, init should reject a null frame handler
     EXPECT_FALSE(initResult);
-#else 
-    // with MINIHDLC_TINY, init should succeed even with null pointers
+#else
+    // with MINIHDLC_TINY, null checks are disabled
     EXPECT_TRUE(initResult);
 #endif
+#else
+    GTEST_SKIP() << "Null pointer init check only applies in callback mode";
+#endif // MINIHDLC_USE_CALLBACK
 }
 
 TEST(MiniHDLC, Encode) {
@@ -49,7 +48,7 @@ TEST(MiniHDLC, Encode) {
 }
 
 TEST(MiniHDLC, Encode_WithEscape) {
-#ifndef MINIHDLC_USE_CALLBACKS
+#ifndef MINIHDLC_USE_CALLBACK
     minihdlc::MiniHDLCController controller;
     std::array<uint8_t, 20> hdlcFrame;
     std::array<uint8_t, 6> rawFrame = {0x1A, 0x7D, 0x3C, 0x4D, 0x5E, 0x6F}; 
@@ -68,7 +67,7 @@ TEST(MiniHDLC, Encode_WithEscape) {
 }
 
 TEST(MiniHDLC, Encode_WithEscapes) {
-#ifndef MINIHDLC_USE_CALLBACKS
+#ifndef MINIHDLC_USE_CALLBACK
     minihdlc::MiniHDLCController controller;
     std::array<uint8_t, 20> hdlcFrame;
     std::array<uint8_t, 6> rawFrame = {0x1A, 0x7D, 0x3C, 0x4D, 0x7E, 0x6F}; 
@@ -87,7 +86,7 @@ TEST(MiniHDLC, Encode_WithEscapes) {
 }
 
 TEST(MiniHDLC, Decode) {
-#ifndef MINIHDLC_USE_CALLBACKS
+#ifndef MINIHDLC_USE_CALLBACK
     minihdlc::MiniHDLCController controller;
     std::array<uint8_t, 10> hdlcFrame = {0x7E, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E, 0x6F, 0x03, 0xFA, 0x7E};
     std::array<uint8_t, 20> rawFrame; 

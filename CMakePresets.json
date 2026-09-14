@@ -12,7 +12,8 @@
             "inherits": "base",
             "cacheVariables": {
                 "BUILD_TESTING": "ON",
-                "MINIHDLC_TINY_MODE": "OFF"
+                "MINIHDLC_TINY_MODE": "OFF",
+                "MINIHDLC_USE_CALLBACK": "OFF"
             }
         },
         {
@@ -20,7 +21,8 @@
             "inherits": "base",
             "cacheVariables": {
                 "BUILD_TESTING": "OFF",
-                "MINIHDLC_TINY_MODE": "OFF"
+                "MINIHDLC_TINY_MODE": "OFF",
+                "MINIHDLC_USE_CALLBACK": "OFF"
             }
         },
         {
@@ -28,7 +30,8 @@
             "inherits": "base",
             "cacheVariables": {
                 "BUILD_TESTING": "ON",
-                "MINIHDLC_TINY_MODE": "ON"
+                "MINIHDLC_TINY_MODE": "ON",
+                "MINIHDLC_USE_CALLBACK": "OFF"
             }
         },
         {
@@ -36,7 +39,44 @@
             "inherits": "base",
             "cacheVariables": {
                 "BUILD_TESTING": "OFF",
-                "MINIHDLC_TINY_MODE": "ON"
+                "MINIHDLC_TINY_MODE": "ON",
+                "MINIHDLC_USE_CALLBACK": "OFF"
+            }
+        },
+        {
+            "name": "tests-callback",
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": "ON",
+                "MINIHDLC_TINY_MODE": "OFF",
+                "MINIHDLC_USE_CALLBACK": "ON"
+            }
+        },
+        {
+            "name": "tests-tiny-callback",
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": "ON",
+                "MINIHDLC_TINY_MODE": "ON",
+                "MINIHDLC_USE_CALLBACK": "ON"
+            }
+        },
+        {
+            "name": "no-tests-callback",
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": "OFF",
+                "MINIHDLC_TINY_MODE": "OFF",
+                "MINIHDLC_USE_CALLBACK": "ON"
+            }
+        },
+        {
+            "name": "no-tests-tiny-callback",
+            "inherits": "base",
+            "cacheVariables": {
+                "BUILD_TESTING": "OFF",
+                "MINIHDLC_TINY_MODE": "ON",
+                "MINIHDLC_USE_CALLBACK": "ON"
             }
         },
         {
@@ -50,6 +90,22 @@
         {
             "name": "arm-no-tests-tiny",
             "inherits": "no-tests-tiny",
+            "toolchainFile": "${sourceDir}/cmake/arm-none-eabi.cmake",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/arm-none-eabi.cmake"
+            }
+        },
+        {
+            "name": "arm-no-tests-callback",
+            "inherits": "no-tests-callback",
+            "toolchainFile": "${sourceDir}/cmake/arm-none-eabi.cmake",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/arm-none-eabi.cmake"
+            }
+        },
+        {
+            "name": "arm-no-tests-tiny-callback",
+            "inherits": "no-tests-tiny-callback",
             "toolchainFile": "${sourceDir}/cmake/arm-none-eabi.cmake",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/arm-none-eabi.cmake"
@@ -74,6 +130,22 @@
             "configurePreset": "no-tests-tiny"
         },
         {
+            "name": "tests-callback",
+            "configurePreset": "tests-callback"
+        },
+        {
+            "name": "tests-tiny-callback",
+            "configurePreset": "tests-tiny-callback"
+        },
+        {
+            "name": "no-tests-callback",
+            "configurePreset": "no-tests-callback"
+        },
+        {
+            "name": "no-tests-tiny-callback",
+            "configurePreset": "no-tests-tiny-callback"
+        },
+        {
             "name": "arm-no-tests",
             "configurePreset": "arm-no-tests",
             "targets": ["minihdlc"]
@@ -81,6 +153,16 @@
         {
             "name": "arm-no-tests-tiny",
             "configurePreset": "arm-no-tests-tiny",
+            "targets": ["minihdlc"]
+        },
+        {
+            "name": "arm-no-tests-callback",
+            "configurePreset": "arm-no-tests-callback",
+            "targets": ["minihdlc"]
+        },
+        {
+            "name": "arm-no-tests-tiny-callback",
+            "configurePreset": "arm-no-tests-tiny-callback",
             "targets": ["minihdlc"]
         }
     ],
@@ -95,6 +177,20 @@
         {
             "name": "tests-tiny",
             "configurePreset": "tests-tiny",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "tests-callback",
+            "configurePreset": "tests-callback",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "tests-tiny-callback",
+            "configurePreset": "tests-tiny-callback",
             "output": {
                 "outputOnFailure": true
             }
